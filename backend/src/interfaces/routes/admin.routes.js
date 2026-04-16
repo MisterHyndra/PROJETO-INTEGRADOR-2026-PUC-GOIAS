@@ -71,7 +71,11 @@ router.patch('/pedidos/:id/status', async (req, res) => {
     const { status } = req.body;
     const socketAdapter = req.app.locals.socketAdapter;
     const useCase = new AtualizarStatusPedidoUseCase(pedidoRepo, socketAdapter);
-    const pedido = await useCase.execute({ pedidoId: req.params.id, novoStatus: status });
+    const pedido = await useCase.execute({
+      pedidoId: req.params.id,
+      novoStatus: status,
+      origem: 'ADMIN',
+    });
     res.json(pedido);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -98,6 +102,7 @@ router.get('/stats', async (req, res) => {
       totalProdutos: produtos.filter((p) => p.ativo).length,
       estoqueBaixo: estoqueBaixo.length,
       pedidosProcessando,
+      mensageriaAtiva: Boolean(req.app.locals.messaging?.connected),
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

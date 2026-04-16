@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Button } from './Button';
 import { Badge } from './Badge';
 
@@ -38,7 +39,11 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         )}
       </div>
       <div className="p-5">
-        <h3 className="text-lg font-bold text-espresso mb-3 font-serif">{product.nome}</h3>
+        <Link to={`/produto/${product.id}`} className="block">
+          <h3 className="text-lg font-bold text-espresso mb-3 font-serif hover:text-gold transition-colors">
+            {product.nome}
+          </h3>
+        </Link>
         <div className="flex flex-wrap gap-2 mb-4">
           {product.altitudeM && (<Badge variant="altitude">↑ {product.altitudeM}m</Badge>)}
           {product.torra && (<Badge variant="torra">{product.torra}</Badge>)}
@@ -46,13 +51,17 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         <p className="text-sm text-arabica mb-4 line-clamp-2 h-10">{product.descricao}</p>
         <div className="flex justify-between items-center pt-4 border-t border-parchment">
           <span className="text-2xl font-bold text-gold font-serif">R$ {preco}</span>
-          <Button 
-            variant="primary" 
-            size="sm"
-            onClick={() => onAddToCart(product)}
-          >
-            Adicionar
-          </Button>
+          <div className="flex gap-2">
+            <Link
+              to={`/produto/${product.id}`}
+              className="inline-flex items-center justify-center rounded-md border border-parchment px-3 py-2 text-sm font-medium text-espresso transition-colors hover:border-gold hover:text-gold"
+            >
+              Ver
+            </Link>
+            <Button variant="primary" size="sm" onClick={() => onAddToCart(product)}>
+              Adicionar
+            </Button>
+          </div>
         </div>
       </div>
     </div>

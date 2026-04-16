@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
-import { api } from '../services/api';
+import { api, authAPI } from '../services/api';
 import { useWebSocket } from '../hooks/useWebSocket';
 
 interface Cliente {
@@ -33,7 +33,7 @@ export function MinhaConta() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dados');
 
-  const { subscribe } = useWebSocket(cliente?.id);
+  const { socket } = useWebSocket(cliente?.id);
 
   useEffect(() => {
     if (cliente?.role === 'ADMIN') {
@@ -47,13 +47,19 @@ export function MinhaConta() {
 
   useEffect(() => {
     if (pedidos.length > 0 && cliente?.id) {
-      pedidos.forEach(pedido => {
-        subscribe(`pedido:${pedido.id}:status`, (data) => {
-          setPedidos(prev => prev.map(p => p.id === pedido.id ? { ...p, status: data.status } : p));
-        });
-      });
+      const onPedidoAtualizado = (data: { pedidoId: string; status: string }) => {
+        setPedidos(prev =>
+          prev.map(p => (p.id === data.pedidoId ? { ...p, status: data.status } : p))
+        );
+      };
+
+      socket?.on('pedido:status:updated', onPedidoAtualizado);
+
+      return () => {
+        socket?.off('pedido:status:updated', onPedidoAtualizado);
+      };
     }
-  }, [pedidos, subscribe, cliente?.id]);
+  }, [socket, pedidos.length, cliente?.id]);
 
   const carregarDados = async () => {
     try {
@@ -71,8 +77,16 @@ export function MinhaConta() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const refreshToken = localStorage.getItem('refreshToken');
+    try {
+      await authAPI.logout(refreshToken);
+    } catch (error) {
+      console.error('Erro ao encerrar sessão:', error);
+    }
+
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('cliente');
     navigate('/');
   };

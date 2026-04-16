@@ -15,6 +15,12 @@ export class ClienteRepository extends IClienteRepository {
     return new Cliente(data);
   }
 
+  async buscarPorCpf(cpf) {
+    const data = await prisma.cliente.findUnique({ where: { cpf }, include: { enderecos: true } });
+    if (!data) return null;
+    return new Cliente(data);
+  }
+
   async salvar(dados) {
     const data = await prisma.cliente.create({
       data: {

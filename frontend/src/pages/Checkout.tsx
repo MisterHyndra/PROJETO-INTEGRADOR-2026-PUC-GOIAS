@@ -13,8 +13,8 @@ export function Checkout() {
   const [metodoPagamento, setMetodoPagamento] = useState('CARTAO');
 
   const freteOptions = {
-    PAC: 15.00,
-    SEDEX: 25.00,
+    PAC: 12.90,
+    SEDEX: 25.90,
     RETIRADA: 0.00,
   };
 
@@ -104,8 +104,8 @@ export function Checkout() {
                   onChange={(e) => setTipoFrete(e.target.value)}
                   className="w-full px-4 py-2 border-2 border-parchment rounded text-espresso focus:outline-none focus:border-gold"
                 >
-                  <option value="PAC">PAC - R$ 15,00 (5-10 dias úteis)</option>
-                  <option value="SEDEX">SEDEX - R$ 25,00 (1-3 dias úteis)</option>
+                  <option value="PAC">PAC - R$ 12,90 (5-10 dias úteis)</option>
+                  <option value="SEDEX">SEDEX - R$ 25,90 (1-3 dias úteis)</option>
                   <option value="RETIRADA">Retirada na Loja - R$ 0,00</option>
                 </select>
               </div>

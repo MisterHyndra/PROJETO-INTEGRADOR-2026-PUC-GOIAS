@@ -15,7 +15,7 @@ import { RabbitMQProducer } from './infrastructure/messaging/RabbitMQProducer.js
 import { OrderConsumer } from './infrastructure/messaging/OrderConsumer.js';
 import { SocketIOAdapter } from './infrastructure/websocket/SocketIOAdapter.js';
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
 const app = express();
 const server = createServer(app);
@@ -34,23 +34,21 @@ const socketAdapter = new SocketIOAdapter(io);
 socketAdapter.configurar();
 app.locals.socketAdapter = socketAdapter;
 
-// RabbitMQ — graceful connection (non-blocking)
+// RabbitMQ — required infrastructure
 const producer = new RabbitMQProducer();
 const consumer = new OrderConsumer(socketAdapter);
 
+app.locals.publisher = null;
+app.locals.messaging = { connected: false, mode: 'rabbitmq' };
+
 async function conectarMensageria() {
-  try {
-    await producer.connect();
-    await consumer.connect();
-    await consumer.consumePedidos();
-    app.locals.publisher = producer;
-    console.log('✅ RabbitMQ conectado');
-  } catch (err) {
-    console.warn('⚠️  RabbitMQ indisponível — continuando sem mensageria:', err.message);
-    app.locals.publisher = null;
-  }
+  await producer.connect();
+  await consumer.connect();
+  await consumer.consumePedidos();
+  app.locals.publisher = producer;
+  app.locals.messaging = { connected: true, mode: 'rabbitmq' };
+  console.log(' RabbitMQ conectado');
 }
-conectarMensageria();
 
 // Routes
 app.use('/api/produtos', produtosRoutes);
@@ -60,11 +58,25 @@ app.use('/api/avaliacoes', avaliacoesRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Health check
-app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
+app.get('/health', (req, res) =>
+  res.json({
+    status: 'ok',
+    timestamp: new Date(),
+    messaging: req.app.locals.messaging,
+  })
+);
 
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
-  console.log(`🚀 Paralelo 14 API rodando na porta ${PORT}`);
-});
+
+conectarMensageria()
+  .then(() => {
+    server.listen(PORT, () => {
+      console.log(` Paralelo 14 API rodando na porta ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error(' Falha ao inicializar mensageria RabbitMQ:', error.message);
+    process.exit(1);
+  });
 
 export { io };

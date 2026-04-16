@@ -64,7 +64,7 @@ router.patch('/:id', authMiddleware, adminMiddleware, async (req, res) => {
     const { status } = req.body;
     if (!status) return res.status(400).json({ message: 'Status é obrigatório' });
 
-    const pedido = await pedidoRepo.atualizarStatus(req.params.id, status);
+    const pedido = await pedidoRepo.atualizarStatus(req.params.id, status, 'ADMIN');
     res.json(pedido);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -77,7 +77,7 @@ router.put('/:id/status', authMiddleware, adminMiddleware, async (req, res) => {
     const { novoStatus } = req.body;
     if (!novoStatus) return res.status(400).json({ message: 'Status é obrigatório' });
 
-    const pedido = await pedidoRepo.atualizarStatus(req.params.id, novoStatus);
+    const pedido = await pedidoRepo.atualizarStatus(req.params.id, novoStatus, 'ADMIN');
     res.json(pedido);
   } catch (error) {
     res.status(500).json({ message: error.message });

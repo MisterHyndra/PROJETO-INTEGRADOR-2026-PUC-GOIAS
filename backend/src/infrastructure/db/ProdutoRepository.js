@@ -27,6 +27,24 @@ export class ProdutoRepository extends IProdutoRepository {
     return data.map((item) => new Produto(item));
   }
 
+  async reduzirEstoque(produtoId, quantidade) {
+    const produto = await prisma.produto.findUnique({ where: { id: produtoId } });
+    if (!produto) {
+      throw new Error(`Produto ${produtoId} não encontrado`);
+    }
+
+    if (produto.estoque < quantidade) {
+      throw new Error(`Estoque insuficiente para: ${produto.nome}`);
+    }
+
+    const atualizado = await prisma.produto.update({
+      where: { id: produtoId },
+      data: { estoque: { decrement: quantidade } },
+    });
+
+    return new Produto(atualizado);
+  }
+
   async salvar(produto) {
     const data = await prisma.produto.create({
       data: {

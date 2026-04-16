@@ -46,7 +46,10 @@ export class CriarPedidoUseCase {
     // Publish to RabbitMQ – graceful fallback if unavailable
     if (this.publisher) {
       try {
-        await this.publisher.publishPedido(pedido);
+        await this.publisher.publishPedido({
+          pedidoId: pedido.id,
+          clienteId: pedido.clienteId,
+        });
       } catch (err) {
         console.warn('Aviso: falha ao publicar na fila RabbitMQ:', err.message);
       }

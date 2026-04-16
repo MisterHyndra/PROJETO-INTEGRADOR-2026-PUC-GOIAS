@@ -20,6 +20,7 @@ model Cliente {
   enderecos  Endereco[]
   pedidos    Pedido[]
   avaliacoes Avaliacao[]
+  refreshTokens RefreshToken[]
   createdAt  DateTime    @default(now())
 
   @@map("clientes")
@@ -70,6 +71,7 @@ model Pedido {
   updatedAt       DateTime     @updatedAt
   cliente         Cliente      @relation(fields: [clienteId], references: [id])
   itens           ItemPedido[]
+  historicoStatus PedidoStatusHistorico[]
 
   @@map("pedidos")
 }
@@ -98,6 +100,28 @@ model Avaliacao {
 
   @@unique([clienteId, produtoId])
   @@map("avaliacoes")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  clienteId String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  cliente   Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model PedidoStatusHistorico {
+  id         String       @id @default(uuid())
+  pedidoId   String
+  status     StatusPedido
+  origem     String?
+  createdAt  DateTime     @default(now())
+  pedido     Pedido       @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+
+  @@map("pedido_status_historico")
 }
 
 enum StatusPedido {

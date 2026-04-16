@@ -38,6 +38,7 @@ interface Stats {
   totalProdutos: number;
   estoqueBaixo: number;
   pedidosProcessando: number;
+  mensageriaAtiva: boolean;
 }
 
 type AdminTab = 'dashboard' | 'produtos' | 'pedidos';
@@ -273,6 +274,12 @@ export function Admin() {
                 <div className="bg-cream p-6 rounded-lg border-2 border-parchment">
                   <h3 className="text-lg font-semibold text-espresso mb-2">Pedidos Processando</h3>
                   <p className="text-3xl font-bold text-gold">{stats.pedidosProcessando}</p>
+                </div>
+                <div className="bg-cream p-6 rounded-lg border-2 border-parchment">
+                  <h3 className="text-lg font-semibold text-espresso mb-2">Broker RabbitMQ</h3>
+                  <p className={`text-2xl font-bold ${stats.mensageriaAtiva ? 'text-green-700' : 'text-red-700'}`}>
+                    {stats.mensageriaAtiva ? 'Online' : 'Offline'}
+                  </p>
                 </div>
               </div>
 

@@ -7,6 +7,10 @@ export class Pedido {
     subtotal = 0,
     frete = 0,
     total = 0,
+    createdAt,
+    updatedAt,
+    cliente,
+    historicoStatus = [],
   }) {
     this.id = id;
     this.clienteId = clienteId;
@@ -15,6 +19,10 @@ export class Pedido {
     this.subtotal = subtotal;
     this.frete = frete;
     this.total = total;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
+    this.cliente = cliente;
+    this.historicoStatus = historicoStatus;
   }
 
   calcularTotal() {

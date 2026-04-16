@@ -38,6 +38,7 @@ export function Auth() {
       });
 
       localStorage.setItem('token', response.data.token);
+      localStorage.setItem('refreshToken', response.data.refreshToken);
       localStorage.setItem('cliente', JSON.stringify(response.data.cliente));
       const destination = response.data.cliente?.role === 'ADMIN' ? '/admin' : '/minha-conta';
       navigate(destination);
@@ -69,6 +70,7 @@ export function Auth() {
       });
 
       localStorage.setItem('token', response.data.token);
+      localStorage.setItem('refreshToken', response.data.refreshToken);
       localStorage.setItem('cliente', JSON.stringify(response.data.cliente));
       navigate('/minha-conta');
     } catch (err: any) {
