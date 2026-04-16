@@ -63,10 +63,9 @@ export function MinhaConta() {
 
   const carregarDados = async () => {
     try {
-      const clienteData = localStorage.getItem('cliente');
-      if (clienteData) {
-        setCliente(JSON.parse(clienteData));
-      }
+      const responseCliente = await authAPI.me();
+      setCliente(responseCliente.data);
+      localStorage.setItem('cliente', JSON.stringify(responseCliente.data));
 
       const responsePedidos = await api.get('/pedidos');
       setPedidos(responsePedidos.data);

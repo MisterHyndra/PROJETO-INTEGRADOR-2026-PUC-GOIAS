@@ -5,6 +5,7 @@ import { ClienteRepository } from '../../infrastructure/db/ClienteRepository.js'
 import { CriarClienteUseCase } from '../../application/CriarClienteUseCase.js';
 import { AutenticarClienteUseCase } from '../../application/AutenticarClienteUseCase.js';
 import prisma from '../../infrastructure/db/prismaClient.js';
+import { authMiddleware } from '../middlewares/auth.middleware.js';
 
 dotenv.config({ quiet: true });
 
@@ -51,6 +52,27 @@ router.post('/login', async (req, res) => {
     res.json(result);
   } catch (error) {
     res.status(401).json({ message: error.message });
+  }
+});
+
+// GET /api/auth/me
+router.get('/me', authMiddleware, async (req, res) => {
+  try {
+    const cliente = await clienteRepo.buscarPorId(req.user.id);
+    if (!cliente) {
+      return res.status(404).json({ message: 'Usuário não encontrado' });
+    }
+
+    res.json({
+      id: cliente.id,
+      nome: cliente.nome,
+      email: cliente.email,
+      cpf: cliente.cpf,
+      telefone: cliente.telefone,
+      role: cliente.role,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 

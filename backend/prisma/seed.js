@@ -15,7 +15,12 @@ async function main() {
   const senhaAdmin = await bcrypt.hash('admin123', 12);
   await prisma.cliente.upsert({
     where: { email: 'admin@paralelo14.com' },
-    update: {},
+    update: {
+      nome: 'Administrador',
+      senhaHash: senhaAdmin,
+      cpf: '000.000.000-00',
+      role: 'ADMIN',
+    },
     create: {
       nome: 'Administrador',
       email: 'admin@paralelo14.com',
@@ -30,7 +35,12 @@ async function main() {
   const senhaDemo = await bcrypt.hash('demo123', 12);
   await prisma.cliente.upsert({
     where: { email: 'joao@exemplo.com' },
-    update: {},
+    update: {
+      nome: 'João Silva',
+      senhaHash: senhaDemo,
+      cpf: '111.222.333-44',
+      role: 'CLIENTE',
+    },
     create: {
       nome: 'João Silva',
       email: 'joao@exemplo.com',

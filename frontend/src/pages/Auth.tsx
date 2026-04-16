@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
-import { api } from '../services/api';
+import { authAPI } from '../services/api';
 
 type AuthMode = 'login' | 'cadastro';
 
@@ -32,16 +32,19 @@ export function Auth() {
     setLoading(true);
 
     try {
-      const response = await api.post('/auth/login', {
-        email: formData.email,
-        senha: formData.senha,
-      });
+      const response = await authAPI.login(
+        formData.email,
+        formData.senha
+      );
 
+      localStorage.removeItem('cliente');
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('refreshToken', response.data.refreshToken);
-      localStorage.setItem('cliente', JSON.stringify(response.data.cliente));
-      const destination = response.data.cliente?.role === 'ADMIN' ? '/admin' : '/minha-conta';
-      navigate(destination);
+
+      const perfil = await authAPI.me();
+      localStorage.setItem('cliente', JSON.stringify(perfil.data));
+      const destination = perfil.data?.role === 'ADMIN' ? '/admin' : '/minha-conta';
+      navigate(destination, { replace: true });
     } catch (err: any) {
       setError(err.response?.data?.message || 'Erro ao fazer login');
     } finally {
@@ -61,7 +64,7 @@ export function Auth() {
     setLoading(true);
 
     try {
-      const response = await api.post('/auth/register', {
+      const response = await authAPI.cadastro({
         email: formData.email,
         senha: formData.senha,
         nome: formData.nome,
@@ -72,13 +75,26 @@ export function Auth() {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('refreshToken', response.data.refreshToken);
       localStorage.setItem('cliente', JSON.stringify(response.data.cliente));
-      navigate('/minha-conta');
+      navigate('/minha-conta', { replace: true });
     } catch (err: any) {
       setError(err.response?.data?.message || 'Erro ao cadastrar');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    authAPI
+      .me()
+      .then((response) => {
+        localStorage.setItem('cliente', JSON.stringify(response.data));
+        navigate(response.data.role === 'ADMIN' ? '/admin' : '/minha-conta', { replace: true });
+      })
+      .catch(() => {});
+  }, [navigate]);
 
   const handleSubmit = mode === 'login' ? handleLogin : handleCadastro;
 

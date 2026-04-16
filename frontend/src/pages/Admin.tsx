@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
-import { api } from '../services/api';
+import { api, authAPI } from '../services/api';
 
 interface Produto {
   id: string;
@@ -66,20 +66,23 @@ export function Admin() {
   });
 
   useEffect(() => {
-    validarAcesso();
-    carregarDados();
+    inicializarPainel();
   }, []);
 
-  const validarAcesso = () => {
-    const cliente = localStorage.getItem('cliente');
-    if (!cliente) {
-      navigate('/auth');
-      return;
-    }
+  const inicializarPainel = async () => {
+    try {
+      const responseCliente = await authAPI.me();
+      localStorage.setItem('cliente', JSON.stringify(responseCliente.data));
 
-    const dados = JSON.parse(cliente);
-    if (dados.role !== 'ADMIN') {
-      navigate('/');
+      if (responseCliente.data.role !== 'ADMIN') {
+        navigate('/');
+        return;
+      }
+
+      await carregarDados();
+    } catch (error) {
+      console.error('Erro ao validar acesso admin:', error);
+      navigate('/auth');
     }
   };
 

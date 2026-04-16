@@ -6,6 +6,7 @@ export class Cliente {
     senhaHash,
     cpf,
     telefone = null,
+    role = 'CLIENTE',
     enderecos = [],
   }) {
     this.id = id;
@@ -14,6 +15,7 @@ export class Cliente {
     this.senhaHash = senhaHash;
     this.cpf = cpf;
     this.telefone = telefone;
+    this.role = role;
     this.enderecos = enderecos;
   }
 

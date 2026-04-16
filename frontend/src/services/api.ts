@@ -91,6 +91,7 @@ export const pedidosAPI = {
 export const authAPI = {
   login: (email: string, senha: string) => api.post('/auth/login', { email, senha }),
   cadastro: (dados: Record<string, any>) => api.post('/auth/signup', dados),
+  me: () => api.get('/auth/me'),
   refresh: (refreshToken: string) => api.post('/auth/refresh', { refreshToken }),
   logout: (refreshToken?: string | null) => api.post('/auth/logout', { refreshToken }),
 };
