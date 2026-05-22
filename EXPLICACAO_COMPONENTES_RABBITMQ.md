@@ -1,24 +1,24 @@
-# Explicacao da Conexao Entre os Componentes e o RabbitMQ
+# Explicação da Conexão Entre os Componentes e o RabbitMQ
 
-Este documento explica de forma simples como os componentes do projeto **Paralelo 14 Cafes Especiais** se conectam, principalmente na parte de **mensageria com RabbitMQ**.
+Este documento explica de forma simples como os componentes do projeto **Paralelo 14 Cafés Especiais** se conectam, principalmente na parte de **mensageria com RabbitMQ**.
 
 ---
 
-## 1. Visao geral da conexao entre os componentes
+## 1. Visão geral da conexão entre os componentes
 
 No projeto, os principais blocos sao:
 
 - **Frontend React**
-- **API Node.js + Express**
+- **API Java Spring Boot**
 - **PostgreSQL**
 - **RabbitMQ**
-- **Order Consumer**
+- **Pedido Consumer**
 - **Socket.IO**
 
 A ideia principal e:
 
-- o **frontend** envia a acao do usuario
-- a **API** recebe essa acao
+- o **frontend** envia a ação do usuário
+- a **API** recebe essa ação
 - a **API** salva os dados no banco
 - depois a **API publica uma mensagem na fila**
 - o **consumer** pega essa mensagem
@@ -54,18 +54,15 @@ Voce pode dizer:
 
 ---
 
-## 3. Relacao com o Diagrama C4 - Nivel 2
+## 2. Relação com a arquitetura do projeto
 
-No **Nivel 2 - Container**, o foco muda.
+Os containers técnicos principais são:
 
-Agora mostramos os blocos tecnicos que compoem o sistema:
-
-- React SPA Loja
-- React SPA Admin Dashboard
-- Node.js API
+- React SPA
+- Spring Boot API
 - PostgreSQL
 - RabbitMQ Broker
-- Order Consumer
+- Consumer assíncrono
 
 ### O que cada container faz
 
@@ -92,15 +89,15 @@ Responsabilidades:
 - acompanhar pedidos
 - ver estatisticas
 
-#### Node.js API Express
+#### API Spring Boot
 
-E o backend principal.
+É o backend principal.
 
 Responsabilidades:
 
-- receber requisicoes HTTP
-- autenticar usuarios
-- validar regras de negocio
+- receber requisições HTTP
+- autenticar usuários
+- validar regras de negócio
 - salvar dados no banco
 - publicar mensagens no RabbitMQ
 
@@ -129,7 +126,7 @@ Responsabilidades:
 
 #### Order Consumer
 
-E o trabalhador assincrono.
+É o trabalhador assíncrono.
 
 Responsabilidades:
 
@@ -137,11 +134,11 @@ Responsabilidades:
 - pegar pedidos novos
 - atualizar status
 - reduzir estoque
-- disparar atualizacao em tempo real
+- disparar atualização em tempo real
 
 ---
 
-## 4. Onde entra o RabbitMQ nessa arquitetura
+## 3. Onde entra o RabbitMQ nessa arquitetura
 
 O RabbitMQ fica **entre a API e o consumer**.
 
@@ -159,7 +156,7 @@ Frontend -> API -> Banco
 
 O frontend nao fala diretamente com o RabbitMQ.
 
-Quem fala com o RabbitMQ e a API.
+Quem fala com o RabbitMQ é a API Spring Boot.
 
 O RabbitMQ tambem nao atualiza a tela.
 
@@ -167,9 +164,9 @@ Quem atualiza a tela e o backend, via Socket.IO, depois que o consumer processa 
 
 ---
 
-## 5. Como o pedido entra no RabbitMQ
+## 4. Como o pedido entra no RabbitMQ
 
-Quando o usuario finaliza a compra:
+Quando o usuário finaliza a compra:
 
 1. O frontend chama:
 
@@ -177,19 +174,13 @@ Quando o usuario finaliza a compra:
 POST /api/pedidos
 ```
 
-2. A API valida os itens e calcula:
-
-- subtotal
-- frete
-- total
-
-3. O pedido e salvo no banco.
-
+2. A API valida os itens e calcula subtotal, frete e total.
+3. O pedido é salvo no banco.
 4. Depois disso, a API publica uma mensagem no RabbitMQ.
 
-Essa publicacao acontece em:
+Essa publicação acontece em:
 
-- [RabbitMQProducer.js](C:\Users\pvpne\OneDrive\Desktop\FACU-2026\PROJETO-INTEGRADOR\backend\src\infrastructure\messaging\RabbitMQProducer.js)
+- `PedidoProducer.java`
 
 Fila principal:
 
@@ -208,15 +199,25 @@ Mensagem enviada:
 
 ### Como explicar isso
 
-"A API nao envia o pedido inteiro para processamento direto. Ela salva o pedido no banco e envia uma mensagem com o identificador para a fila. O consumer pega esse identificador e continua o trabalho depois."
+"A API não envia o pedido inteiro para processamento direto. Ela salva o pedido no banco e envia uma mensagem com o identificador para a fila. O consumer pega esse identificador e continua o trabalho depois."
 
 ---
 
-## 6. Como o consumer se conecta a essa fila
+## 5. Como o consumer usa essa fila
 
-O consumer esta neste arquivo:
+O consumer está em:
 
-- [OrderConsumer.js](C:\Users\pvpne\OneDrive\Desktop\FACU-2026\PROJETO-INTEGRADOR\backend\src\infrastructure\messaging\OrderConsumer.js)
+- `PedidoConsumer.java`
+
+O fluxo do consumer é:
+
+1. receber a mensagem da fila
+2. extrair `pedidoId`
+3. buscar o pedido no banco
+4. atualizar o status para `SEPARANDO`
+5. reduzir o estoque dos itens
+6. atualizar o status para `ENVIADO`
+7. emitir `pedido:status:updated` via Socket.IO
 
 Ele:
 

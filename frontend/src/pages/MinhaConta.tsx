@@ -18,6 +18,12 @@ interface Pedido {
   status: string;
   total: string;
   createdAt: string;
+  historicoStatus: Array<{
+    id: string;
+    status: string;
+    origem?: string;
+    createdAt: string;
+  }>;
   itens: Array<{
     id: string;
     produto: { nome: string };
@@ -120,6 +126,16 @@ export function MinhaConta() {
     CANCELADO: 'bg-red-100 text-red-800',
   };
 
+  const formatarStatus = (status: string) => status.replace(/_/g, ' ');
+
+  const formatarOrigem = (origem?: string) => {
+    if (!origem) return 'Sistema';
+    if (origem === 'API') return 'Compra';
+    if (origem === 'CONSUMER') return 'Processamento';
+    if (origem === 'ADMIN') return 'Administração';
+    return origem;
+  };
+
   return (
     <div className="min-h-screen bg-cream py-12 px-4">
       <div className="max-w-4xl mx-auto">
@@ -212,7 +228,7 @@ export function MinhaConta() {
                           </p>
                         </div>
                         <span className={`px-4 py-2 rounded font-bold text-sm ${statusColors[pedido.status]}`}>
-                          {pedido.status.replace(/_/g, ' ')}
+                          {formatarStatus(pedido.status)}
                         </span>
                       </div>
 
@@ -229,6 +245,30 @@ export function MinhaConta() {
                           </div>
                         ))}
                       </div>
+
+                      {pedido.historicoStatus?.length > 0 && (
+                        <div className="mb-4 border-t border-parchment pt-4">
+                          <h4 className="mb-3 text-sm font-bold uppercase tracking-wide text-espresso">
+                            Histórico do Pedido
+                          </h4>
+                          <div className="space-y-3">
+                            {pedido.historicoStatus.map((evento) => (
+                              <div
+                                key={evento.id}
+                                className="flex items-start justify-between gap-4 rounded-lg bg-cream px-4 py-3"
+                              >
+                                <div>
+                                  <p className="font-semibold text-espresso">{formatarStatus(evento.status)}</p>
+                                  <p className="text-sm text-arabica">Origem: {formatarOrigem(evento.origem)}</p>
+                                </div>
+                                <p className="text-sm text-arabica whitespace-nowrap">
+                                  {new Date(evento.createdAt).toLocaleString('pt-BR')}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                       <div className="border-t border-parchment pt-4">
                         <p className="flex justify-between text-lg font-bold text-espresso">

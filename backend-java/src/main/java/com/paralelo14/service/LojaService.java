@@ -271,7 +271,7 @@ public class LojaService {
 
         try {
             pedidoProducer.publish(new PedidoEvento(salvo.getId(), salvo.getCliente().getId()));
-        } catch (AmqpException ex) {
+        } catch (Exception ex) {
             // fallback gracioso
         }
 

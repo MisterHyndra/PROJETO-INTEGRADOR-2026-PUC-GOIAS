@@ -1,5 +1,6 @@
 package com.paralelo14.web;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
@@ -47,14 +48,14 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<?> me(Authentication authentication, @RequestAttribute("userId") String userId) {
         Cliente cliente = lojaService.buscarClientePorId(userId);
-        return ResponseEntity.ok(Map.of(
-            "id", cliente.getId(),
-            "nome", cliente.getNome(),
-            "email", cliente.getEmail(),
-            "cpf", cliente.getCpf(),
-            "telefone", cliente.getTelefone(),
-            "role", cliente.getRole().name()
-        ));
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("id", cliente.getId());
+        payload.put("nome", cliente.getNome());
+        payload.put("email", cliente.getEmail());
+        payload.put("cpf", cliente.getCpf());
+        payload.put("telefone", cliente.getTelefone());
+        payload.put("role", cliente.getRole().name());
+        return ResponseEntity.ok(payload);
     }
 
     @PostMapping("/refresh")

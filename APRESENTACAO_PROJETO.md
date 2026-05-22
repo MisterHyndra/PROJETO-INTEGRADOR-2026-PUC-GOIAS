@@ -1,21 +1,22 @@
-# Apresentacao do Projeto - Paralelo 14 Cafes Especiais
+# Apresentação do Projeto - Paralelo 14 Cafés Especiais
 
-## Visao Geral
+## Visão Geral
 
-O projeto **Paralelo 14 Cafes Especiais** e um e-commerce full-stack com foco em processamento assincrono de pedidos.
+O projeto **Paralelo 14 Cafés Especiais** é um e-commerce full-stack com foco em processamento assíncrono de pedidos.
 
 ### Stack principal
 
-- Frontend: React + Vite
-- Backend: Node.js + Express
+- Frontend: React + Vite + TypeScript + Tailwind CSS
+- Backend: Java 17 + Spring Boot 3
 - Banco de dados: PostgreSQL
-- ORM: Prisma: serve pra facilitar a comunicação entre seu código e o banco de dados.
+- Persistência: Spring Data JPA + Hibernate
+- Migrações: Flyway
 - Mensageria: RabbitMQ
-- Atualizacao em tempo real: Socket.IO
+- Atualização em tempo real: Socket.IO
 
-### Objetivo tecnico
+## Objetivo técnico
 
-Demonstrar uma **solucao web distribuida com mensageria**, onde o pedido nao depende de processamento totalmente sincrono para seguir o fluxo.
+Demonstrar uma **solução web distribuída com mensageria**, onde o pedido não depende de processamento totalmente síncrono para seguir o fluxo.
 
 ---
 
@@ -23,26 +24,28 @@ Demonstrar uma **solucao web distribuida com mensageria**, onde o pedido nao dep
 
 ### Fala curta
 
-"Nosso sistema foi pensado como uma aplicacao web distribuida. O frontend em React cuida da experiencia do cliente e do administrador. O backend em Express centraliza a regra de negocio. O PostgreSQL persiste os dados. O RabbitMQ desacopla a criacao do pedido do processamento assincrono. E o Socket.IO atualiza a tela em tempo real."
+"Nosso sistema foi pensado como uma aplicação web distribuída. O frontend em React cuida da experiência do cliente e do administrador. O backend em Spring Boot centraliza a regra de negócio. O PostgreSQL persiste os dados. O RabbitMQ desacopla a criação do pedido do processamento assíncrono. E o Socket.IO atualiza a tela em tempo real."
 
 ### Estrutura do projeto
 
 - `frontend/`
-  Interface do usuario, catalogo, carrinho, checkout, conta e painel admin.
-- `backend/src/domain`
-  Entidades e regras centrais do negocio.
-- `backend/src/application`
-  Casos de uso, como criar pedido e atualizar status.
-- `backend/src/infrastructure`
-  Banco de dados, RabbitMQ e WebSocket.
-- `backend/src/interfaces/routes`
-  Rotas HTTP da API.
+  Interface do usuário, catálogo, carrinho, checkout, conta e painel admin.
+- `backend-java/src/main/java/com/paralelo14/domain`
+  Entidades e regras centrais do negócio.
+- `backend-java/src/main/java/com/paralelo14/service`
+  Serviços e casos de uso da aplicação.
+- `backend-java/src/main/java/com/paralelo14/messaging`
+  Integração com RabbitMQ.
+- `backend-java/src/main/java/com/paralelo14/web`
+  Controladores HTTP da API.
+- `backend-java/src/main/java/com/paralelo14/websocket`
+  Eventos Socket.IO.
 
 ### Como justificar a arquitetura
 
 Vocês podem dizer:
 
-"A arquitetura adotada separa bem dominio, aplicacao, infraestrutura e interface. Isso melhora manutencao, facilita testes e deixa a mensageria desacoplada da camada web. Essa organizacao foi escolhida porque o sistema precisa integrar banco, fila e WebSocket sem misturar responsabilidade."
+"A arquitetura adotada separa domínio, serviço, mensageria, web e persistência. Isso melhora manutenção, facilita testes e deixa a mensageria desacoplada da camada HTTP. Essa organização foi escolhida porque o sistema precisa integrar banco, fila e WebSocket sem misturar responsabilidade."
 
 ---
 
@@ -54,31 +57,27 @@ Abstrai o acesso ao banco.
 
 Exemplos:
 
-- [ClienteRepository.js](C:\Users\pvpne\OneDrive\Desktop\FACU-2026\PROJETO-INTEGRADOR\backend\src\infrastructure\db\ClienteRepository.js)
-- [PedidoRepository.js](C:\Users\pvpne\OneDrive\Desktop\FACU-2026\PROJETO-INTEGRADOR\backend\src\infrastructure\db\PedidoRepository.js)
-- [ProdutoRepository.js](C:\Users\pvpne\OneDrive\Desktop\FACU-2026\PROJETO-INTEGRADOR\backend\src\infrastructure\db\ProdutoRepository.js)
+- `ClienteRepository.java`
+- `PedidoRepository.java`
+- `ProdutoRepository.java`
 
 ### Strategy Pattern
 
-Usado para calculo de frete.
-
-Exemplo:
-
-- [CriarPedidoUseCase.js](C:\Users\pvpne\OneDrive\Desktop\FACU-2026\PROJETO-INTEGRADOR\backend\src\application\CriarPedidoUseCase.js)
+Usado para cálculo de frete com tipos como `PAC`, `SEDEX` e `RETIRADA`.
 
 ### Adapter Pattern
 
-Usado para integrar tecnologias externas com o dominio.
+Usado para integrar tecnologias externas com o domínio.
 
 Exemplos:
 
-- [RabbitMQProducer.js](C:\Users\pvpne\OneDrive\Desktop\FACU-2026\PROJETO-INTEGRADOR\backend\src\infrastructure\messaging\RabbitMQProducer.js)
-- [OrderConsumer.js](C:\Users\pvpne\OneDrive\Desktop\FACU-2026\PROJETO-INTEGRADOR\backend\src\infrastructure\messaging\OrderConsumer.js)
-- [SocketIOAdapter.js](C:\Users\pvpne\OneDrive\Desktop\FACU-2026\PROJETO-INTEGRADOR\backend\src\infrastructure\websocket\SocketIOAdapter.js)
+- `PedidoProducer.java`
+- `PedidoConsumer.java`
+- `SocketGateway.java`
 
 ### Observer / Event-driven
 
-Usado para refletir mudanca de status em tempo real via Socket.IO.
+Usado para refletir mudança de status em tempo real via Socket.IO.
 
 ---
 
@@ -86,7 +85,7 @@ Usado para refletir mudanca de status em tempo real via Socket.IO.
 
 ### Fala curta
 
-"O frontend foi construido em React e consome a API REST do backend. O usuario pode navegar no catalogo, autenticar, montar o carrinho e finalizar pedidos. O administrador pode acessar um painel para gerenciar produtos e pedidos. Quando o pedido muda de status, a interface e atualizada em tempo real."
+"O frontend foi construído em React e consome a API REST do backend Java. O usuário pode navegar no catálogo, autenticar, montar o carrinho e finalizar pedidos. O administrador pode acessar um painel para gerenciar produtos e pedidos. Quando o pedido muda de status, a interface é atualizada em tempo real."
 
 ### Rotas importantes
 
@@ -104,13 +103,13 @@ Usado para refletir mudanca de status em tempo real via Socket.IO.
 
 ### Fala curta
 
-"O RabbitMQ funciona como broker de mensagens. Quando um pedido e criado, a API publica uma mensagem em uma fila. Um consumer escuta essa fila e processa o pedido assincronamente. Isso desacopla o fluxo e evita travar a resposta para o usuario."
+"O RabbitMQ funciona como broker de mensagens. Quando um pedido é criado, a API publica uma mensagem em uma fila. Um consumer escuta essa fila e processa o pedido assincronamente. Isso desacopla o fluxo e evita travar a resposta para o usuário."
 
 ### Arquivos principais
 
-- Producer: [RabbitMQProducer.js](C:\Users\pvpne\OneDrive\Desktop\FACU-2026\PROJETO-INTEGRADOR\backend\src\infrastructure\messaging\RabbitMQProducer.js)
-- Consumer: [OrderConsumer.js](C:\Users\pvpne\OneDrive\Desktop\FACU-2026\PROJETO-INTEGRADOR\backend\src\infrastructure\messaging\OrderConsumer.js)
-- Integracao geral: [index.js](C:\Users\pvpne\OneDrive\Desktop\FACU-2026\PROJETO-INTEGRADOR\backend\src\index.js)
+- Producer: `PedidoProducer.java`
+- Consumer: `PedidoConsumer.java`
+- Configuração geral: `RabbitConfig.java`
 
 ---
 
@@ -121,13 +120,13 @@ Usado para refletir mudanca de status em tempo real via Socket.IO.
 1. O cliente faz login e escolhe os produtos.
 2. O frontend envia `POST /api/pedidos`.
 3. O backend valida os itens e calcula subtotal, frete e total.
-4. O pedido e salvo no banco com status inicial.
+4. O pedido é salvo no banco com status inicial `PROCESSANDO`.
 5. A API publica uma mensagem na fila `pedidos.novos`.
 6. O consumer escuta essa fila.
 7. O consumer busca o pedido no banco.
-8. O status e atualizado para `SEPARANDO`.
-9. O estoque dos produtos e reduzido.
-10. O status e atualizado para `ENVIADO`.
+8. O status é atualizado para `SEPARANDO`.
+9. O estoque dos produtos é reduzido.
+10. O status é atualizado para `ENVIADO`.
 11. O sistema emite evento via Socket.IO.
 12. O frontend recebe o evento e atualiza a tela.
 
@@ -141,13 +140,13 @@ Usado para refletir mudanca de status em tempo real via Socket.IO.
 
 ### Como explicar
 
-"Para tratar falhas, o consumer tenta reprocessar a mensagem ate 3 vezes. Se continuar falhando, ela vai para a dead-letter queue `pedidos.dlq`. Assim o sistema fica mais resiliente e nao perde mensagem silenciosamente."
+"Para tratar falhas, o consumer tenta reprocessar a mensagem até 3 vezes. Se continuar falhando, ela vai para a dead-letter queue `pedidos.dlq`. Assim o sistema fica mais resiliente e não perde mensagem silenciosamente."
 
 ### Termos que vale citar
 
 - fila principal: `pedidos.novos`
 - dead-letter queue: `pedidos.dlq`
-- retry: ate 3 tentativas
+- retry: até 3 tentativas
 
 ---
 
@@ -155,11 +154,11 @@ Usado para refletir mudanca de status em tempo real via Socket.IO.
 
 ### Fala curta
 
-"Depois que o consumer atualiza o pedido, o backend emite um evento via Socket.IO. O cliente conectado recebe esse evento e enxerga a mudanca de status sem precisar atualizar a pagina."
+"Depois que o consumer atualiza o pedido, o backend emite um evento via Socket.IO. O cliente conectado recebe esse evento e enxerga a mudança de status sem precisar atualizar a página."
 
 ### Arquivo principal
 
-- [SocketIOAdapter.js](C:\Users\pvpne\OneDrive\Desktop\FACU-2026\PROJETO-INTEGRADOR\backend\src\infrastructure\websocket\SocketIOAdapter.js)
+- `SocketGateway.java`
 
 ---
 
@@ -167,14 +166,14 @@ Usado para refletir mudanca de status em tempo real via Socket.IO.
 
 ### Fala curta
 
-"Na parte de qualidade, o projeto possui autenticacao com JWT, refresh token, organizacao por responsabilidade, testes unitarios no backend e estrutura pronta para evolucao."
+"Na parte de qualidade, o projeto possui autenticação com JWT, refresh token, organização por responsabilidade, testes automatizados no backend Java e estrutura pronta para evolução."
 
 ### Pontos que podem ser citados
 
 - JWT + refresh token
-- testes unitarios no backend
-- organizacao em camadas
-- regra de negocio isolada em casos de uso
+- testes automatizados no backend
+- organização em camadas
+- regra de negócio isolada em serviços
 - mensageria desacoplada da camada web
 
 ----------
@@ -183,27 +182,27 @@ Usado para refletir mudanca de status em tempo real via Socket.IO.
 
 ### 1. Abertura
 
-"Nosso projeto se chama Paralelo 14 Cafes Especiais. Ele simula um e-commerce de cafes de origem e foi desenvolvido como uma solucao web distribuida com mensageria."
+"Nosso projeto se chama Paralelo 14 Cafés Especiais. Ele simula um e-commerce de cafés de origem e foi desenvolvido como uma solução web distribuída com mensageria."
 
 ### 2. Arquitetura
 
-"No frontend usamos React para a experiencia do cliente e do admin. No backend usamos Node.js com Express. Para persistencia usamos PostgreSQL com Prisma. Para mensageria usamos RabbitMQ e, para atualizacao em tempo real, Socket.IO."
+"No frontend usamos React para a experiência do cliente e do admin. No backend usamos Java 17 com Spring Boot. Para persistência usamos PostgreSQL com JPA/Hibernate e Flyway. Para mensageria usamos RabbitMQ e, para atualização em tempo real, Socket.IO."
 
 ### 3. Organizacao do codigo
 
-"Organizamos o backend em dominio, aplicacao, infraestrutura e interfaces. Assim, a regra de negocio fica separada da camada HTTP, do banco e da mensageria."
+"Organizamos o backend em domínio, serviço, mensageria, web e persistência. Assim, a regra de negócio fica separada da camada HTTP, do banco e da fila."
 
 ### 4. Fluxo tecnico do pedido
 
-"Quando o usuario cria um pedido, a API valida os dados, persiste o pedido e publica uma mensagem na fila `pedidos.novos`. Um consumer escuta essa fila, atualiza o status do pedido, reduz o estoque e envia eventos via WebSocket para refletir isso na tela."
+"Quando o usuário cria um pedido, a API valida os dados, persiste o pedido e publica uma mensagem na fila `pedidos.novos`. Um consumer escuta essa fila, atualiza o status do pedido, reduz o estoque e envia eventos via WebSocket para refletir isso na tela."
 
 ### 5. Resiliencia
 
-"Tambem implementamos retry e dead-letter queue. Se o processamento falhar, o sistema tenta novamente e, se continuar falhando, a mensagem vai para `pedidos.dlq`."
+"Também implementamos retry e dead-letter queue. Se o processamento falhar, o sistema tenta novamente e, se continuar falhando, a mensagem vai para `pedidos.dlq`."
 
 ### 6. Encerramento
 
-"Com isso, o sistema atende ao objetivo do semestre, que e demonstrar uma aplicacao web com processamento assincrono desacoplado, arquitetura organizada e atualizacao em tempo real."
+"Com isso, o sistema atende ao objetivo do semestre, que é demonstrar uma aplicação web com processamento assíncrono desacoplado, arquitetura organizada e atualização em tempo real."
 
 ---
 
@@ -220,13 +219,15 @@ docker compose up -d
 No backend:
 
 ```powershell
-npm start
+cd backend-java
+mvn spring-boot:run
 ```
 
 No frontend:
 
 ```powershell
-npm run dev
+cd frontend
+pnpm run dev
 ```
 
 ### RabbitMQ Management
@@ -541,14 +542,14 @@ No painel admin, voces podem destacar:
 
 ---
 
-## Observacao importante para a banca
+## Observação importante para a banca
 
-Se perguntarem sobre Spring Boot:
+Se perguntarem sobre aderência ao documento:
 
-"O documento usa Spring Boot como exemplo de stack, mas o requisito principal e construir uma solucao web full-stack distribuida com mensageria, arquitetura organizada e processamento assincrono. Nosso projeto atende isso com React, Node.js, PostgreSQL, RabbitMQ e Socket.IO."
+"A solução final usa exatamente React no frontend e Spring Boot no backend, além de PostgreSQL, RabbitMQ e Socket.IO, atendendo ao requisito de aplicação full-stack distribuída com mensageria e atualização em tempo real."
 
 ---
 
-## Fechamento rapido
+## Fechamento rápido
 
-"Nosso projeto entrega uma aplicacao web full-stack com mensageria real, fluxo assincrono de pedidos, atualizacao em tempo real, backend organizado por responsabilidades e uma interface alinhada ao conceito visual da marca."
+"Nosso projeto entrega uma aplicação web full-stack com mensageria real, fluxo assíncrono de pedidos, atualização em tempo real, backend organizado por responsabilidades e uma interface alinhada ao conceito visual da marca."

@@ -3,10 +3,14 @@ package com.paralelo14.domain.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.paralelo14.domain.enums.StatusPedido;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -17,6 +21,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -36,8 +41,9 @@ public class Pedido extends AbstractStringIdEntity {
     @JoinColumn(name = "clienteId", nullable = false)
     private Cliente cliente;
 
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "\"StatusPedido\"")
     private StatusPedido status = StatusPedido.AGUARDANDO_PAGAMENTO;
 
     @Column(nullable = false, precision = 10, scale = 2)
@@ -64,8 +70,9 @@ public class Pedido extends AbstractStringIdEntity {
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemPedido> itens = new ArrayList<>();
 
+    @OrderBy("createdAt ASC")
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PedidoStatusHistorico> historicoStatus = new ArrayList<>();
+    private Set<PedidoStatusHistorico> historicoStatus = new LinkedHashSet<>();
 
     @PrePersist
     void prePersistPedido() {

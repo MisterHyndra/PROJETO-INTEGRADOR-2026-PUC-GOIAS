@@ -1,168 +1,120 @@
-# Instalação e Setup - Paralelo 14
+# Setup do Projeto - Paralelo 14 Cafés Especiais
 
 ## Pré-requisitos
 
+- Java 17+
+- Maven 3.9+
 - Node.js 20+
-- PostgreSQL 16
+- pnpm
 - Docker + Docker Compose
-- Git
 
-## Setup Local
+## 1. Subir infraestrutura
 
-### 1. Clonar Repositório
+Na raiz do projeto:
 
-```bash
-git clone <seu-repo>
-cd paralelo14
+```powershell
+docker compose up -d
 ```
 
-### 2. Variáveis de Ambiente
+Isso sobe:
 
-```bash
-# Copiar template
-cp .env.example .env
+- PostgreSQL
+- RabbitMQ
 
-# Backend
-cd backend && cp .env.example .env
-# Editar backend/.env com suas credenciais
+## 2. Variáveis de ambiente
+
+O projeto lê valores do arquivo `.env` na raiz e também pode usar `backend-java/.env`.
+
+Arquivos disponíveis:
+
+- `.env.example`
+- `backend-java/.env.example`
+
+Se necessário, copie e ajuste os valores.
+
+## 3. Rodar backend Java
+
+```powershell
+cd backend-java
+mvn spring-boot:run
 ```
 
-### 3. Banco de Dados (PostgreSQL)
+Serviços expostos:
 
-#### Opção A: Com Docker Compose
+- API HTTP: `http://localhost:3001`
+- Socket.IO: `http://localhost:3002`
 
-```bash
-docker-compose up -d
-```
+## 4. Rodar frontend
 
-Aguarde 10-15 segundos para o PostgreSQL estar pronto.
-
-#### Opção B: PostgreSQL Local
-
-```bash
-# Criar banco manualmente via PGAdmin
-# Ou via psql:
-psql -U postgres -h localhost -c "CREATE DATABASE paralelo14;"
-```
-
-### 4. Setup Backend
-
-```bash
-cd backend
-
-# Instalar dependências
-npm install
-
-# Gerar Prisma Client
-npx prisma generate
-
-# Rodar Migrations
-npx prisma migrate dev --name init
-
-# (Opcional) Seed de dados
-npx prisma db seed
-
-# Iniciar servidor
-npm run dev
-```
-
-O backend rodará em `http://localhost:3001`
-
-### 5. Setup Frontend
-
-```bash
+```powershell
 cd frontend
-
-# Instalar dependências
-npm install
-
-# Iniciar dev server
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
-O frontend rodará em `http://localhost:5173`
+Frontend:
 
-## Verificação de Funcionamento
+- `http://localhost:5173`
 
-### Health Check Backend
+## 5. Verificações rápidas
 
-```bash
-curl http://localhost:3001/api/produtos
+### Produtos
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:3001/api/produtos"
 ```
 
-Esperado: Array de produtos `[]` ou lista de produtos.
+### Health check
 
-### RabbitMQ Management (se Docker Compose)
-
-```
-http://localhost:15672
-username: admin
-password: admin
+```powershell
+Invoke-RestMethod -Uri "http://localhost:3001/health"
 ```
 
-### Banco de Dados
+### RabbitMQ Management
 
-```bash
-# Abrir Prisma Studio
-cd backend && npx prisma studio
+- URL: `http://localhost:15672`
+- Usuário: `admin`
+- Senha: `admin`
+
+## 6. Testes
+
+### Backend Java
+
+```powershell
+cd backend-java
+mvn test
 ```
 
-## Testes
+### Frontend build
 
-```bash
-cd backend
-
-# Rodar todos os testes
-npm test
-
-# Watch mode
-npm run test:watch
-
-# Coverage
-npm run test:coverage
-```
-
-## Build para Produção
-
-### Backend
-
-```bash
-cd backend
-npm run build
-npm start
-```
-
-### Frontend
-
-```bash
+```powershell
 cd frontend
-npm run build
-# Será gerado em frontend/dist/
+pnpm build
 ```
 
-## Troubleshooting
+## 7. Troubleshooting
 
-### Erro: "Cannot connect to PostgreSQL"
+### Erro ao criar pedido
 
-- Verificar se PostgreSQL está rodando
-- Verificar credenciais em `.env`
-- Se Docker: `docker-compose logs postgres`
+Verifique:
 
-### Erro: "Cannot connect to RabbitMQ"
+- se o usuário está logado
+- se o backend Java está rodando em `3001`
+- se o RabbitMQ está ativo
+- se existe estoque para o produto escolhido
 
-- Verificar se RabbitMQ está rodando
-- Se Docker: `docker-compose logs rabbitmq`
-- Aguardar 30s após `docker-compose up`
+### RabbitMQ fora do ar
 
-### Erro: "Prisma migrations failed"
-
-```bash
-cd backend
-npx prisma migrate reset
+```powershell
+docker compose logs rabbitmq
 ```
 
-## Documentação Adicional
+### PostgreSQL fora do ar
 
-- [Arquitetura Backend](../backend/README.md)
-- [Design System Frontend](../frontend/README.md)
-- [API Endpoints](./API.md)
+```powershell
+docker compose logs postgres
+```
+
+## 8. Observação importante
+
+O backend oficial é `backend-java/`. O diretório `backend/` representa a implementação legada em Node.js e não deve ser usado no fluxo normal da apresentação final.

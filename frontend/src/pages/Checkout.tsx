@@ -45,9 +45,9 @@ export function Checkout() {
       await api.post('/pedidos', pedidoData);
       clear();
       navigate('/minha-conta', { state: { message: 'Pedido realizado com sucesso!' } });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao criar pedido:', error);
-      alert('Erro ao processar pedido. Tente novamente.');
+      alert(error.response?.data?.message || 'Erro ao processar pedido. Tente novamente.');
     } finally {
       setLoading(false);
     }

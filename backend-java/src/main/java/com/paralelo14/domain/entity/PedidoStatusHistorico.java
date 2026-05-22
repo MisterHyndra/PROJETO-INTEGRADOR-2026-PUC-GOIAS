@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.paralelo14.domain.enums.StatusPedido;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,8 +32,9 @@ public class PedidoStatusHistorico extends AbstractStringIdEntity {
     @JoinColumn(name = "pedidoId", nullable = false)
     private Pedido pedido;
 
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "\"StatusPedido\"")
     private StatusPedido status;
 
     private String origem;
