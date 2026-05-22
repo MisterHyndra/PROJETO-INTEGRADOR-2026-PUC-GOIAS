@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -61,6 +61,9 @@ api.interceptors.response.use(
       const response = await axios.post(`${API_URL}/auth/refresh`, { refreshToken });
       const newToken = response.data.token;
       localStorage.setItem('token', newToken);
+      if (response.data.refreshToken) {
+        localStorage.setItem('refreshToken', response.data.refreshToken);
+      }
       localStorage.setItem('cliente', JSON.stringify(response.data.cliente));
       notifyPendingRequests(newToken);
       originalRequest.headers.Authorization = `Bearer ${newToken}`;

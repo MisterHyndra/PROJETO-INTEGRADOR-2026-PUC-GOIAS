@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: backend-java
+  config:
+    import: optional:file:../backend/.env[.properties],optional:file:../.env[.properties],optional:file:.env[.properties]
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:paralelo14}}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USER:postgres}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:neuro123}}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        globally_quoted_identifiers: true
+    properties.hibernate.physical_naming_strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:${RABBITMQ_HOST:localhost}}
+    port: ${SPRING_RABBITMQ_PORT:${RABBITMQ_PORT:5672}}
+    username: ${SPRING_RABBITMQ_USERNAME:${RABBITMQ_USER:admin}}
+    password: ${SPRING_RABBITMQ_PASSWORD:${RABBITMQ_PASSWORD:admin}}
+server:
+  port: ${PORT:3001}
+app:
+  jwt:
+    secret: ${JWT_SECRET:1234567890123456789012345678901234567890123456789012345678901234}
+    expiration-minutes: 15
+  socket:
+    host: 0.0.0.0
+    port: ${SOCKET_PORT:${WS_PORT:3002}}
+    allowed-origin: http://localhost:5173

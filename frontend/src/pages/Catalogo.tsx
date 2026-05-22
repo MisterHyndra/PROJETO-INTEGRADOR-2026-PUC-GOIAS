@@ -26,11 +26,22 @@ export function Catalogo() {
     precoMax: 999,
   });
   const [loading, setLoading] = useState(true);
+  const [feedback, setFeedback] = useState('');
   const { addItem } = useCartContext();
 
   useEffect(() => {
     carregarProdutos();
   }, [filtros]);
+
+  useEffect(() => {
+    if (!feedback) return;
+
+    const timeout = window.setTimeout(() => {
+      setFeedback('');
+    }, 2600);
+
+    return () => window.clearTimeout(timeout);
+  }, [feedback]);
 
   const carregarProdutos = async () => {
     try {
@@ -49,6 +60,13 @@ export function Catalogo() {
 
   return (
     <div className="min-h-screen bg-[#f6f2ea] pb-16">
+      {feedback && (
+        <div className="fixed right-4 top-24 z-50 max-w-sm rounded-lg border border-green-200 bg-white px-4 py-3 shadow-[0_18px_50px_rgba(40,30,18,0.14)]">
+          <p className="text-xs uppercase tracking-[0.22em] text-green-700">Carrinho</p>
+          <p className="mt-1 text-sm font-medium text-espresso">{feedback}</p>
+        </div>
+      )}
+
       <section className="border-b border-[#d9d1c4] bg-[#f8f5ef] px-4 py-14 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
@@ -178,14 +196,15 @@ export function Catalogo() {
                 <ProductCard
                   key={produto.id}
                   product={produto}
-                  onAddToCart={(p) =>
+                  onAddToCart={(p) => {
                     addItem({
                       id: p.id,
                       nome: p.nome,
                       preco: Number(p.preco ?? 0),
                       imagemUrl: p.imagemUrl,
-                    })
-                  }
+                    });
+                    setFeedback(`${p.nome} foi adicionado ao carrinho.`);
+                  }}
                 />
               ))}
             </div>

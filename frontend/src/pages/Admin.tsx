@@ -50,8 +50,11 @@ export function Admin() {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [savingProduct, setSavingProduct] = useState(false);
+  const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Produto | null>(null);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const [formData, setFormData] = useState({
     nome: '',
@@ -110,6 +113,8 @@ export function Admin() {
 
   const handleAdicionarProduto = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFeedback(null);
+    setSavingProduct(true);
 
     try {
       const payload = {
@@ -126,8 +131,10 @@ export function Admin() {
 
       if (editingProduct) {
         await api.put(`/admin/produtos/${editingProduct.id}`, payload);
+        setFeedback({ type: 'success', message: 'Produto atualizado com sucesso.' });
       } else {
         await api.post('/admin/produtos', payload);
+        setFeedback({ type: 'success', message: 'Produto criado com sucesso.' });
       }
 
       setFormData({
@@ -143,13 +150,20 @@ export function Admin() {
       });
       setEditingProduct(null);
       setShowForm(false);
-      carregarDados();
-    } catch (error) {
+      await carregarDados();
+    } catch (error: any) {
       console.error('Erro ao adicionar produto:', error);
+      setFeedback({
+        type: 'error',
+        message: error.response?.data?.error || 'Nao foi possivel salvar o produto.',
+      });
+    } finally {
+      setSavingProduct(false);
     }
   };
 
   const handleEditarProduto = (produto: Produto) => {
+    setFeedback(null);
     setEditingProduct(produto);
     setFormData({
       nome: produto.nome,
@@ -163,14 +177,24 @@ export function Admin() {
       imagemUrl: produto.imagemUrl || '',
     });
     setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleExcluirProduto = async (produtoId: string) => {
+    setFeedback(null);
+    setDeletingProductId(produtoId);
     try {
       await api.delete(`/admin/produtos/${produtoId}`);
-      carregarDados();
-    } catch (error) {
+      setFeedback({ type: 'success', message: 'Produto removido com sucesso.' });
+      await carregarDados();
+    } catch (error: any) {
       console.error('Erro ao excluir produto:', error);
+      setFeedback({
+        type: 'error',
+        message: error.response?.data?.error || 'Nao foi possivel excluir o produto.',
+      });
+    } finally {
+      setDeletingProductId(null);
     }
   };
 
@@ -253,6 +277,18 @@ export function Admin() {
 
         {/* Content */}
         <div className="bg-white rounded-b-xl shadow-lg p-8">
+          {feedback && (
+            <div
+              className={`mb-6 rounded-lg border px-4 py-3 text-sm font-medium ${
+                feedback.type === 'success'
+                  ? 'border-green-200 bg-green-50 text-green-800'
+                  : 'border-red-200 bg-red-50 text-red-800'
+              }`}
+            >
+              {feedback.message}
+            </div>
+          )}
+
           {activeTab === 'dashboard' && stats && (
             <div>
               <h2 className="text-3xl font-bold text-espresso mb-8 font-serif">Dashboard</h2>
@@ -342,6 +378,7 @@ export function Admin() {
             <div>
               <div className="mb-8">
                 <Button
+                  type="button"
                   onClick={() => setShowForm(!showForm)}
                   className="bg-gold text-espresso hover:bg-arabica"
                 >
@@ -437,8 +474,12 @@ export function Admin() {
                     rows={4}
                   />
 
-                  <Button type="submit" className="bg-gold text-espresso hover:bg-arabica">
-                    {editingProduct ? 'Salvar Alterações' : 'Salvar Produto'}
+                  <Button type="submit" disabled={savingProduct} className="bg-gold text-espresso hover:bg-arabica disabled:opacity-60">
+                    {savingProduct
+                      ? 'Salvando...'
+                      : editingProduct
+                        ? 'Salvar Alteracoes'
+                        : 'Salvar Produto'}
                   </Button>
                 </form>
               )}
@@ -463,6 +504,7 @@ export function Admin() {
                     </div>
                     <div className="flex gap-2">
                       <Button
+                        type="button"
                         size="sm"
                         onClick={() => handleEditarProduto(produto)}
                         className="w-1/2 text-sm"
@@ -470,12 +512,14 @@ export function Admin() {
                         Editar
                       </Button>
                       <Button
+                        type="button"
                         size="sm"
                         variant="outline"
                         className="w-1/2 text-sm"
+                        disabled={deletingProductId === produto.id}
                         onClick={() => handleExcluirProduto(produto.id)}
                       >
-                        Excluir
+                        {deletingProductId === produto.id ? 'Excluindo...' : 'Excluir'}
                       </Button>
                     </div>
                   </div>
