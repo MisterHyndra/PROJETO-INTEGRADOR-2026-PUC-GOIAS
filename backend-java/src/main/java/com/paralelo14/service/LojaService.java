@@ -280,13 +280,21 @@ public class LojaService {
 
     @Transactional(readOnly = true)
     public List<Pedido> listarPedidos(String clienteId, boolean admin) {
-        return admin ? pedidoRepository.findAllByOrderByCreatedAtDesc() : pedidoRepository.findByClienteIdOrderByCreatedAtDesc(clienteId);
+        List<Pedido> pedidos = admin
+            ? pedidoRepository.findAllByOrderByCreatedAtDesc()
+            : pedidoRepository.findByClienteIdOrderByCreatedAtDesc(clienteId);
+
+        pedidos.forEach(this::inicializarRelacionamentosPedido);
+        return pedidos;
     }
 
     @Transactional(readOnly = true)
     public Pedido buscarPedidoPorId(String pedidoId) {
-        return pedidoRepository.findById(pedidoId)
+        Pedido pedido = pedidoRepository.findById(pedidoId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pedido não encontrado"));
+
+        inicializarRelacionamentosPedido(pedido);
+        return pedido;
     }
 
     @Transactional
@@ -388,6 +396,11 @@ public class LojaService {
 
     private ClienteResumo toResumo(Cliente cliente) {
         return new ClienteResumo(cliente.getId(), cliente.getNome(), cliente.getEmail(), cliente.getRole().name());
+    }
+
+    private void inicializarRelacionamentosPedido(Pedido pedido) {
+        pedido.getItens().size();
+        pedido.getHistoricoStatus().size();
     }
 
     private boolean equalsIgnoreCase(String left, String right) {
