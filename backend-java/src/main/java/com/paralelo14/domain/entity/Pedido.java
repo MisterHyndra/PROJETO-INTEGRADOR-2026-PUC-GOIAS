@@ -36,8 +36,7 @@ import lombok.Setter;
 @Table(name = "pedidos")
 public class Pedido extends AbstractStringIdEntity {
 
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "clienteId", nullable = false)
     private Cliente cliente;
 

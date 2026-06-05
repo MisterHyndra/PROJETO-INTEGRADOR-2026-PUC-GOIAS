@@ -9,12 +9,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.paralelo14.domain.entity.Avaliacao;
@@ -46,6 +50,8 @@ import com.paralelo14.websocket.SocketGateway;
 
 @Service
 public class LojaService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(LojaService.class);
 
     private static final Map<String, BigDecimal> FRETES = Map.of(
         "SEDEX", new BigDecimal("25.90"),
@@ -269,11 +275,7 @@ public class LojaService {
 
         Pedido salvo = pedidoRepository.save(pedido);
 
-        try {
-            pedidoProducer.publish(new PedidoEvento(salvo.getId(), salvo.getCliente().getId()));
-        } catch (Exception ex) {
-            // fallback gracioso
-        }
+        publicarPedidoAposCommit(new PedidoEvento(salvo.getId(), salvo.getCliente().getId()));
 
         return buscarPedidoPorId(salvo.getId());
     }
@@ -405,6 +407,33 @@ public class LojaService {
 
     private boolean equalsIgnoreCase(String left, String right) {
         return left != null && right != null && left.equalsIgnoreCase(right);
+    }
+
+    private void publicarPedidoAposCommit(PedidoEvento evento) {
+        Runnable publishAction = () -> {
+            try {
+                pedidoProducer.publish(evento);
+            } catch (AmqpException ex) {
+                pedidoProducer.markDisconnected();
+                LOGGER.error("Falha ao publicar pedido {} na fila após commit", evento.pedidoId(), ex);
+            } catch (Exception ex) {
+                pedidoProducer.markDisconnected();
+                LOGGER.error("Falha inesperada ao publicar pedido {} na fila após commit", evento.pedidoId(), ex);
+            }
+        };
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()
+            && TransactionSynchronizationManager.isActualTransactionActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    publishAction.run();
+                }
+            });
+            return;
+        }
+
+        publishAction.run();
     }
 
     private String gerarRefreshToken() {
